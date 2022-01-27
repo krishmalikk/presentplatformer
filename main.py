@@ -1,3 +1,4 @@
+from gc import is_finalized
 import pygame
 import sys
 from pygame.locals import *
@@ -27,6 +28,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = 40
         self.rect.y = 400
+        self.is_jumping = False
+        self.is_falling = False
+        self.jCount = 10
 
     def move(self, key):
         if key == 'left':
@@ -40,12 +44,22 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.rect.x += 5
 
-        if key == 'up':
-            self.rect.y -= 5
+    def gravity(self):
+        if(self.rect.y >= 410):
+            self.is_falling = False
+        if self.is_falling:
+            self.rect.y += 10
+        if self.is_jumping and not(self.is_falling):
+            if(self.jCount > 0):
+                self.rect.y -= 10
+                self.jCount -= 1
+
+            if(self.jCount <= 0):
+                self.is_falling = True
+                self.is_jumping = False
 
 
 P1 = Player()
-
 
 while True:
     for event in pygame.event.get():
@@ -63,7 +77,15 @@ while True:
     if keys[K_RIGHT]:
         P1.move("right")
     if keys[K_UP]:
-        P1.move("up")
+        P1.is_jumping = True
+        if(P1.jCount <= 0):
+            P1.jCount = 10
+    if keys[K_t]:
+        P1.is_falling = True
+    if keys[K_f]:
+        P1.is_falling = False
+
+    P1.gravity()
 
     pygame.display.update()
     FramePerSec.tick(FPS)
